@@ -1,27 +1,41 @@
 const TelegramBot = require("node-telegram-bot-api")
-// 🔹 Твой токен от BotFather
-const TOKEN = "7308783055:AAHPAWp8dlfQ57wl1xHqve7yrA01evRRbso"
-// 🔹 ID чата, куда бот должен отправлять сообщения
-// Узнать можно через: https://t.me/RawDataBot
-const TARGET_CHAT_ID = -1002228332362
+const express = require('express')
 
-const bot = new TelegramBot(TOKEN, { polling: true })
+// 🔹 Tокен от BotFather
+const TOKEN = "7308783055:AAHPAWp8dlfQ57wl1xHqve7yrA01evRRbso"
+// 🔹 ID чата Узнать можно через: https://t.me/RawDataBot
+const TARGET_CHAT_ID = -1002228332362
+// Узнать через @userinfobot
+const DANIL_TELEGRAM_ID = 700027769
+const NIKITA_TELEGRAM_ID = 327312382
+
+const PORT = process.env.PORT || 3000
+
+const WEBHOOK_URL = 'https://p2p-bot-telegram.onrender.com'
+
+// const bot = new TelegramBot(TOKEN, { polling: true })
+
+const app = express()
+app.use(express.json())
+
+const bot = new TelegramBot(TOKEN)
+
+bot.setWebHook(`${WEBHOOK_URL}/bot${TOKEN}`)
+
+app.post(`/bot${TOKEN}`, (req, res) => {
+    bot.processUpdate(req.body)
+    res.sendStatus(200)
+})
 
 bot.on("message", (msg) => {
     const now = new Date()
     const dateString = now.toLocaleDateString("uk-UA").replace(/\//g, ".")
 
-    const rate = msg.text.trim()
-
-    // Бот должен реагировать только если пишет его владелец
-    const DANIL_TELEGRAM_ID = 700027769 // Узнать через @userinfobot
-    const NIKITA_TELEGRAM_ID = 327312382
-
     const {from: {id} } = msg
+    const rate = msg.text.trim()
 
     if (id !== DANIL_TELEGRAM_ID && id !== NIKITA_TELEGRAM_ID) return;
 
-    // Формируем красивый пост
     const message = `
 cerus 🫱🏻‍🫲🏼 rebus
     
@@ -33,4 +47,6 @@ ${dateString}
     bot.sendMessage(TARGET_CHAT_ID, message, { parse_mode: "Markdown" })
 })
 
-console.log('Bot started successful')
+app.listen(PORT, () => {
+    console.log('Bot server running on port ' + PORT)
+})
