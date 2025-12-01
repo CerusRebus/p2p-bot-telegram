@@ -9,11 +9,11 @@ const PORT = process.env.PORT || 3000
 // Tокен от BotFather
 const TOKEN_TG_BOT = process.env.TOKEN_TG_BOT
 // ID чата Узнать можно через: https://t.me/RawDataBot
-const TARGET_CHAT_ID = process.env.TARGET_CHAT_ID
+const TARGET_CHAT_ID = Number(process.env.TARGET_CHAT_ID)
 const WEBHOOK_URL = process.env.WEBHOOK_URL
 // Telegram IDs
-const DANIL_TELEGRAM_ID = process.env.DANIL_TELEGRAM_ID
-const NIKITA_TELEGRAM_ID = process.env.NIKITA_TELEGRAM_ID
+const DANIL_TELEGRAM_ID = Number(process.env.DANIL_TELEGRAM_ID)
+const NIKITA_TELEGRAM_ID = Number(process.env.NIKITA_TELEGRAM_ID)
 
 // const bot = new TelegramBot(TOKEN_TG_BOT, { polling: true })
 
