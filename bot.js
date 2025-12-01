@@ -1,20 +1,19 @@
-let lastMessageId = null
-let lastMessageDate = null
-
+require('dotenv').config()
 const TelegramBot = require("node-telegram-bot-api")
 const express = require('express')
 
-// Tокен от BotFather
-const TOKEN_TG_BOT = "7308783055:AAHPAWp8dlfQ57wl1xHqve7yrA01evRRbso"
-// ID чата Узнать можно через: https://t.me/RawDataBot
-const TARGET_CHAT_ID = -1002228332362
-// Telegram IDs
-const DANIL_TELEGRAM_ID = 700027769
-const NIKITA_TELEGRAM_ID = 327312382
+let lastMessageId = null
+let lastMessageDate = null
 
 const PORT = process.env.PORT || 3000
-
-const WEBHOOK_URL = 'https://p2p-bot-telegram.onrender.com'
+// Tокен от BotFather
+const TOKEN_TG_BOT = process.env.TOKEN_TG_BOT
+// ID чата Узнать можно через: https://t.me/RawDataBot
+const TARGET_CHAT_ID = process.env.TARGET_CHAT_ID
+const WEBHOOK_URL = process.env.WEBHOOK_URL
+// Telegram IDs
+const DANIL_TELEGRAM_ID = process.env.DANIL_TELEGRAM_ID
+const NIKITA_TELEGRAM_ID = process.env.NIKITA_TELEGRAM_ID
 
 // const bot = new TelegramBot(TOKEN_TG_BOT, { polling: true })
 
