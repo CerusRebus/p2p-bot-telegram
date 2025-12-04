@@ -1,4 +1,8 @@
 require('dotenv').config()
+console.log('TOKEN EXISTS:', !!process.env.TOKEN_TG_BOT)
+const isSpam = require('./spam/detector')
+const handleSpam = require('./spam/handler')
+
 const TelegramBot = require("node-telegram-bot-api")
 const express = require('express')
 
@@ -29,13 +33,20 @@ app.post(`/bot${TOKEN_TG_BOT}`, (req, res) => {
 })
 
 bot.on("message", async (msg) => {
+
+    const spam = isSpam(msg)
+    if (spam) {
+        await handleSpam(bot, msg, spam)
+        return
+    }
+
     const now = new Date()
     const dateString = now.toLocaleDateString("uk-UA").replace(/\//g, ".")
 
     const {from: {id}} = msg
     const rate = msg.text.trim()
 
-    if (id !== DANIL_TELEGRAM_ID && id !== NIKITA_TELEGRAM_ID) return;
+    if (id !== DANIL_TELEGRAM_ID && id !== NIKITA_TELEGRAM_ID) return
 
     const today = new Date().toISOString().slice(0, 10)
 
@@ -64,7 +75,7 @@ ${dateString}
 
     lastMessageId = sent.message_id
     // Отправляем в чат
-    // bot.sendMessage(TARGET_CHAT_ID, message, {parse_mode: "Markdown"})
+    bot.sendMessage(TARGET_CHAT_ID, message, {parse_mode: "Markdown"})
 })
 
 app.listen(PORT, () => {
