@@ -22,10 +22,19 @@ const NIKITA_TELEGRAM_ID = Number(process.env.NIKITA_TELEGRAM_ID)
 // const bot = new TelegramBot(TOKEN_TG_BOT, { polling: true })
 
 const app = express()
-app.use(express.json())
+app.use(express.json());
 
-const bot = new TelegramBot(TOKEN_TG_BOT)
-bot.setWebHook(`${WEBHOOK_URL}/bot${TOKEN_TG_BOT}`)
+const bot = new TelegramBot(TOKEN_TG_BOT);
+
+(async () => {
+    try {
+        await bot.deleteWebHook()
+        await bot.setWebHook(`${WEBHOOK_URL}/bot${TOKEN_TG_BOT}`)
+        console.log('Webhook set ✅')
+    } catch (error) {
+        console.error('Webhook error:', error.message)
+    }
+})()
 
 app.post(`/bot${TOKEN_TG_BOT}`, (req, res) => {
     bot.processUpdate(req.body)
@@ -33,6 +42,8 @@ app.post(`/bot${TOKEN_TG_BOT}`, (req, res) => {
 })
 
 bot.on("message", async (msg) => {
+
+    if (!msg.text) return
 
     const spam = isSpam(msg)
     if (spam) {
@@ -44,23 +55,19 @@ bot.on("message", async (msg) => {
     const dateString = now.toLocaleDateString("uk-UA").replace(/\//g, ".")
 
     const {from: {id}} = msg
-    const rate = msg.text.trim()
 
     if (id !== DANIL_TELEGRAM_ID && id !== NIKITA_TELEGRAM_ID) return
 
-    const today = new Date().toISOString().slice(0, 10)
+    const rate = msg.text.trim().replace(',', '.')
+    if (!/^\d+(\.\d{1,3})?$/.test(rate)) {
+        await bot.sendMessage(id, '❌ Формат курса: 1.00')
+        return
+    }
 
+    const today = new Date().toISOString().slice(0, 10)
     if (lastMessageDate !== today) {
         lastMessageDate = today
         lastMessageId = null
-    }
-
-    if (lastMessageId) {
-        try {
-            await bot.deleteMessage(TARGET_CHAT_ID, lastMessageId)
-        } catch (error) {
-            console.log('Failed to delete message:', error.message)
-        }
     }
 
     const message = `
@@ -71,11 +78,23 @@ ${dateString}
 📊 КУРС ПРОДАЖИ USDT 🟢🕹
 💵 USDT - USD 1 / ${rate}`
 
-    const sent = await bot.sendMessage(TARGET_CHAT_ID, message, {parse_mode: "Markdown", disable_notification: true})
+    try {
+        let sent
+        if (lastMessageId) {
+            await bot.editMessageText(message, {
+                chat_id: TARGET_CHAT_ID,
+                message_id: lastMessageId,
+                parse_mode: 'Markdown'
+            })
+        } else {
+            sent = await bot.sendMessage(TARGET_CHAT_ID, message, {parse_mode: 'Markdown', disable_notification: true})
+            lastMessageId = sent.message_id
+        }
 
-    lastMessageId = sent.message_id
-    // Отправляем в чат
-    bot.sendMessage(TARGET_CHAT_ID, message, {parse_mode: "Markdown"})
+        await bot.pinChatMessage(TARGET_CHAT_ID, lastMessageId, {disable_notification: true})
+    } catch (error) {
+        console.log('Bot error: ', error.message)
+    }
 })
 
 app.listen(PORT, () => {
