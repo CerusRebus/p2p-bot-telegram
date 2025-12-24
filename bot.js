@@ -8,6 +8,7 @@ const express = require('express')
 
 let lastMessageId = null
 let lastMessageDate = null
+let lastPinnedMessageId = null
 
 const PORT = process.env.PORT || 3000
 // Tокен от BotFather
@@ -67,7 +68,17 @@ bot.on("message", async (msg) => {
     const today = new Date().toISOString().slice(0, 10)
     if (lastMessageDate !== today) {
         lastMessageDate = today
+
+        if (lastPinnedMessageId) {
+            try {
+                await bot.unpinChatMessage(TARGET_CHAT_ID, lastPinnedMessageId)
+            } catch (error) {
+                console.log('Unpin error:', error.message)
+            }
+        }
+
         lastMessageId = null
+        lastPinnedMessageId = null
     }
 
     const message = `
@@ -92,6 +103,7 @@ ${dateString}
         }
 
         await bot.pinChatMessage(TARGET_CHAT_ID, lastMessageId, {disable_notification: true})
+        lastPinnedMessageId = lastMessageId
     } catch (error) {
         console.log('Bot error: ', error.message)
     }
